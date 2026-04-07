@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { formatGbp } from '../lib/products';
+---
+<BaseLayout title="Your Cart | ESP Store" description="Review basket and checkout securely with Stripe.">
+  <h1>Your basket</h1>
+  <div class="card">
+    <div id="cart-items"></div>
+    <p><strong>Total:</strong> <span id="cart-total">{formatGbp(0)}</span></p>
+    <button id="checkout-btn" class="btn">Checkout securely</button>
+    <p id="checkout-status" class="muted"></p>
+  </div>
+
+  <script>
+    const CART_KEY = 'esp-cart';
+    const itemsWrap = document.getElementById('cart-items');
+    const totalWrap = document.getElementById('cart-total');
+    const statusWrap = document.getElementById('checkout-status');
+
+    const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+    const render = () => {
+      if (!cart.length) {
+        itemsWrap.innerHTML = '<p>Your basket is empty.</p>';
+      } else {
+        itemsWrap.innerHTML = cart.map((item, index) => `
+          <div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid #eee;gap:.6rem;">
+            <div><strong>${item.title}</strong><br><small>Qty: ${item.qty}</small></div>
+            <div>£${(item.price * item.qty).toFixed(2)} <button data-remove="${index}" class="btn secondary" style="margin-left:.4rem">Remove</button></div>
+          </div>
+        `).join('');
+      }
+      const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      totalWrap.textContent = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(total);
+    };
+
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!target.matches('[data-remove]')) return;
+      const idx = Number(target.dataset.remove);
+      cart.splice(idx, 1);
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      render();
+    });
+
+    render();
+
+    document.getElementById('checkout-btn').addEventListener('click', async () => {
+      if (!cart.length) return;
+      statusWrap.textContent = 'Creating secure checkout…';
+      try {
+        const response = await fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cart })
+        });
+        if (!response.ok) throw new Error('Checkout request failed.');
+        const data = await response.json();
+        window.location.href = data.url;
+      } catch (error) {
+        statusWrap.textContent = 'Checkout failed. Please try again.';
+      }
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import CartScript from '../components/CartScript.astro';
+import { allProducts, getCategories } from '../lib/products';
+
+const featured = allProducts.filter((p) => p.featured).slice(0, 6);
+const categories = getCategories();
+---
+<BaseLayout title="ESP Store | Home" description="Shop quality products with fast Stripe checkout.">
+  <section class="card" style="margin-bottom: 1rem;">
+    <h1>Simple, fast ecommerce for small businesses</h1>
+    <p class="muted">Browse our catalogue and pay securely with Stripe Checkout.</p>
+    <a href="/products" class="btn">Shop all products</a>
+  </section>
+
+  <section style="margin-bottom: 1rem;">
+    <h2>Shop by category</h2>
+    <div style="display:flex; gap:.6rem; flex-wrap: wrap;">
+      {categories.map((category) => <a href={`/category/${encodeURIComponent(category)}`} class="btn secondary">{category}</a>)}
+    </div>
+  </section>
+
+  <section>
+    <h2>Featured products</h2>
+    <div class="grid products-grid">
+      {featured.map((product) => <ProductCard product={product} />)}
+    </div>
+  </section>
+  <CartScript />
+</BaseLayout>

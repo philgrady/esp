@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import CartScript from '../../components/CartScript.astro';
+import { getCategories, getProductsByCategory } from '../../lib/products';
+
+export const getStaticPaths = () => getCategories().map((category) => ({ params: { category: encodeURIComponent(category) } }));
+
+const category = decodeURIComponent(Astro.params.category || '');
+const products = getProductsByCategory(category);
+---
+<BaseLayout title={`${category} | ESP Store`} description={`Browse ${category} products.`}>
+  <h1>{category}</h1>
+  <div class="grid products-grid">
+    {products.map((product) => <ProductCard product={product} />)}
+  </div>
+  <CartScript />
+</BaseLayout>

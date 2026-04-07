@@ -1,0 +1,30 @@
+<script>
+  const CART_KEY = 'esp-cart';
+  const readCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  const writeCart = (cart) => localStorage.setItem(CART_KEY, JSON.stringify(cart));
+
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-add-to-cart]');
+    if (!button) return;
+    const cart = readCart();
+    const sku = button.dataset.sku;
+    const existing = cart.find((item) => item.sku === sku);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cart.push({
+        sku,
+        title: button.dataset.title,
+        stripe_price_id: button.dataset.priceId,
+        price: Number(button.dataset.price),
+        qty: 1
+      });
+    }
+    writeCart(cart);
+    const count = cart.reduce((acc, item) => acc + item.qty, 0);
+    const badge = document.getElementById('cart-count');
+    if (badge) badge.textContent = String(count);
+    button.textContent = 'Added';
+    setTimeout(() => (button.textContent = 'Add to basket'), 800);
+  });
+</script>

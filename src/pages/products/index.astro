@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import CartScript from '../../components/CartScript.astro';
+import { allProducts, getCategories } from '../../lib/products';
+const categories = getCategories();
+---
+<BaseLayout title="All Products | ESP Store" description="Browse all products.">
+  <h1>All products</h1>
+  <div class="card" style="margin-bottom:1rem; display:grid; gap:.6rem;">
+    <label>
+      Search
+      <input id="search" type="search" placeholder="Search products" style="width:100%; padding:.6rem; margin-top:.2rem;" />
+    </label>
+    <label>
+      Category
+      <select id="category-filter" style="width:100%; padding:.6rem; margin-top:.2rem;">
+        <option value="">All categories</option>
+        {categories.map((cat) => <option value={cat}>{cat}</option>)}
+      </select>
+    </label>
+  </div>
+  <div class="grid products-grid" id="products-grid">
+    {allProducts.map((product) => (
+      <div data-title={product.title.toLowerCase()} data-category={product.category}>
+        <ProductCard product={product} />
+      </div>
+    ))}
+  </div>
+  <CartScript />
+  <script>
+    const search = document.getElementById('search');
+    const category = document.getElementById('category-filter');
+    const cards = [...document.querySelectorAll('#products-grid > div')];
+    const applyFilter = () => {
+      const q = search.value.trim().toLowerCase();
+      const c = category.value;
+      cards.forEach((card) => {
+        const titleMatch = card.dataset.title.includes(q);
+        const categoryMatch = !c || card.dataset.category === c;
+        card.style.display = titleMatch && categoryMatch ? '' : 'none';
+      });
+    };
+    search.addEventListener('input', applyFilter);
+    category.addEventListener('change', applyFilter);
+  </script>
+</BaseLayout>
