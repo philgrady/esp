@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Payment Success | ESP Store" description="Payment complete.">
+  <section class="card">
+    <h1>Thank you for your order</h1>
+    <p>Your payment has been completed through Stripe Checkout.</p>
+    <a class="btn" href="/products">Continue shopping</a>
+  </section>
+  <script>localStorage.removeItem('esp-cart');</script>
+</BaseLayout>

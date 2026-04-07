@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CartScript from '../../components/CartScript.astro';
+import { allProducts, formatGbp, getPrice, getProductBySlug } from '../../lib/products';
+
+export const getStaticPaths = () => allProducts.map((product) => ({ params: { slug: product.slug } }));
+
+const { slug } = Astro.params;
+const product = getProductBySlug(slug);
+if (!product) return Astro.redirect('/products');
+const price = getPrice(product);
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.title,
+  image: [product.image_1, product.image_2, product.image_3].filter(Boolean),
+  description: product.full_description,
+  sku: product.sku,
+  offers: {
+    '@type': 'Offer',
+    priceCurrency: 'GBP',
+    price,
+    availability: product.stock_status === 'in_stock' ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder'
+  }
+};
+---
+<BaseLayout title={product.meta_title || product.title} description={product.meta_description || product.short_description}>
+  <article class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); align-items:start;">
+    <div class="card"><img src={product.image_1 || '/images/placeholder.svg'} alt={product.title} /></div>
+    <div class="card">
+      <p class="muted">{product.category} / {product.subcategory}</p>
+      <h1>{product.title}</h1>
+      <p>{product.full_description}</p>
+      <p><strong>{formatGbp(price)}</strong></p>
+      <p class="muted">Stock: {product.stock_status} · Lead time: {product.lead_time}</p>
+      <button
+        class="btn"
+        data-add-to-cart
+        data-title={product.title}
+        data-sku={product.sku}
+        data-price={price}
+        data-price-id={product.stripe_price_id}
+      >Add to basket</button>
+    </div>
+  </article>
+  <script type="application/ld+json" set:html={JSON.stringify(schema)}></script>
+  <CartScript />
+</BaseLayout>
